@@ -26,9 +26,8 @@ for index in range(len(df['Station'])):
 
 #print(df_dict['BK', 'GASB'])
 with open("all_local_earthquakes_phasedata_without_SM_and_horizontals.txt") as file:
-    f = [next(file) for line in range(116)] #116 #503 #1502 #10004    #file.readlines()
-    #f = f[-302:]
-    print(f)
+    f = file.readlines()#116 #503 #1502 #10004    #[next(file) for line in range(116)]
+    f = f[-302:] #-5005, not enough #-10003
     line_list = []
     all_picks = []
     for line in f:
@@ -275,8 +274,10 @@ for station in range(len(all_on_off)):
 station = 0
 for key in df_dict:
     plt.figure()
-    plt.scatter(all_true_mag[station], all_true_dist[station], c=all_true_color[station], label='Picked', alpha=0.75)
-    plt.scatter(all_false_mag[station], all_false_dist[station], c=all_false_color[station], label='Unpicked', alpha=0.25)
+    if len(all_true_color[station]) != 0:
+        plt.scatter(all_true_mag[station], all_true_dist[station], c=all_true_color[station], label='Picked', alpha=0.75)
+    if len(all_false_color[station]) != 0:
+        plt.scatter(all_false_mag[station], all_false_dist[station], c=all_false_color[station], label='Unpicked', alpha=0.25)
     plt.xlabel('Earthquake Magnitude')
     plt.ylabel('Distance to Station [m]')
     plt.title('Station ' + str(key) + ' Picks')
@@ -286,8 +287,8 @@ for key in df_dict:
 #print(all_false_color[804])
 
 '''plt.figure()
-plt.scatter(all_true_mag[804], all_true_dist[804], c=all_true_color[804], label='Picked', alpha=0.75)
-plt.scatter(all_false_mag[804], all_false_dist[804], c=all_false_color[804], label='Unpicked', alpha=0.25)
+plt.scatter(all_true_mag[885], all_true_dist[885], c=all_true_color[885], label='Picked', alpha=0.75)
+plt.scatter(all_false_mag[885], all_false_dist[885], c=all_false_color[885], label='Unpicked', alpha=0.25)
 plt.xlabel('Earthquake Magnitude')
 plt.ylabel('Distance to Station [m]')
 plt.title('Station ' + str(key) + ' Picks')
