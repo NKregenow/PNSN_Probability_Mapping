@@ -26,7 +26,8 @@ for index in range(len(df['Station'])):
 
 #print(df_dict['BK', 'GASB'])
 with open("all_local_earthquakes_phasedata_without_SM_and_horizontals.txt") as file:
-    f = [next(file) for line in range(10004)]   #file.readlines() #116 #503 #1502 #10004
+    f = file.readlines()#116 #503 #1502 #10004    #[next(file) for line in range(116)]
+    f = f[-302:] #-5005, not enough #-10003
     line_list = []
     all_picks = []
     for line in f:
@@ -46,8 +47,6 @@ with open("all_local_earthquakes_phasedata_without_SM_and_horizontals.txt") as f
 all_pick_list_earthquake = []
 for earthquake in range(len(all_picks)):
     pick_list_earthquake = []
-
-
     for station_pick in range(len(all_picks[earthquake])):
         net_sta = []
         network = all_picks[earthquake][station_pick][5:]
@@ -82,12 +81,6 @@ for event in range(len(eq_times)):
             was_on.append(False)
             station_list.append(key)
 
-        '''if str(key) == all_pick_list_earthquake[event][index]: #df_dict[key]['On Time'] < eq_times[event] and df_dict[key]['Off Time'] > eq_times[event]:#
-            was_on.append(True)
-            station_list.append(key)
-        else:
-            was_on.append(False)
-            station_list.append(key)'''
     list_of_list.append(was_on)
 eq_df = pd.DataFrame.from_records(list_of_list)
 eq_df = pd.DataFrame.transpose(eq_df)
@@ -222,88 +215,82 @@ def distances(list): #selecting first of each index in list
 def magnitudes(list):
     return [item[2] for item in list]
 
-'''for key in df_dict:
-    station_dists_mags = []
+#Place all of this in a for loop? --> make it run through every station: for key in f_dict:
+station_on_dists_mags = []
+#print(station_eq_df)
+for station in range(len(station_eq_df)):
+    single_station = []
     for earthquake in range(len(station_eq_df.iloc[0])):
-        dist_mag = [station_eq_df.iloc[station, earthquake][index] for index in indices]
-        station_dists_mags.append(dist_mag)
+        on_dist_mag = [station_eq_df.iloc[station, earthquake][index] for index in indices]
+        single_station.append(on_dist_mag)
+    station_on_dists_mags.append(single_station)
 
-    colors = on_off(station_dists_mags)
-    distances_station = distances(station_dists_mags)
-    magnitudes_station = magnitudes(station_dists_mags)
-    #print(colors)
-    #print(distances_station)
-    #print(magnitudes_station)
-    #print(station_eq_df.iloc[0])
+#print(station_on_dists_mags) #list of 1262 sublists of 16 lists, each of the 16 have 3 values
+all_on_off = []
+all_station_mags = []
+all_station_dist = []
+for station in range(len(station_on_dists_mags)):
+    colors = on_off(station_on_dists_mags[station])
+    all_on_off.append(colors)
+    distances_station = distances(station_on_dists_mags[station])
+    all_station_dist.append(distances_station)
+    magnitudes_station = magnitudes(station_on_dists_mags[station])
+    all_station_mags.append(magnitudes_station)
+
+station = 0
+#print(all_station_mags) #list of 1262 (stations) sublists of indices for each eq
+#print(all_station_dist)
+#print(all_on_off)
+#print('\n')
+all_true_color = []
+all_true_mag = []
+all_true_dist = []
+all_false_color = []
+all_false_mag = []
+all_false_dist = []
+for station in range(len(all_on_off)):
+    true_color = []
+    true_mag = []
+    true_dist = []
+    false_color = []
+    false_mag = []
+    false_dist = []
+    for index in range(len(all_on_off[station])):
+        if all_on_off[station][index] == True and all_station_mags[station][index] != 0:
+            true_color.append('Green')
+            true_mag.append(all_station_mags[station][index])
+            true_dist.append(all_station_dist[station][index])
+        elif all_on_off[station][index] == False and all_station_mags[station][index] != 0:
+            false_color.append('Red')
+            false_mag.append(all_station_mags[station][index])
+            false_dist.append(all_station_dist[station][index])
+    all_true_color.append(true_color)
+    all_true_dist.append(true_dist)
+    all_true_mag.append(true_mag)
+    all_false_color.append(false_color)
+    all_false_dist.append(false_dist)
+    all_false_mag.append(false_mag)
+
+station = 0
+for key in df_dict:
     plt.figure()
-    plt.scatter(magnitudes_station, distances_station, c=colors, alpha=0.75)
+    if len(all_true_color[station]) != 0:
+        plt.scatter(all_true_mag[station], all_true_dist[station], c=all_true_color[station], label='Picked', alpha=0.75)
+    if len(all_false_color[station]) != 0:
+        plt.scatter(all_false_mag[station], all_false_dist[station], c=all_false_color[station], label='Unpicked', alpha=0.25)
     plt.xlabel('Earthquake Magnitude')
     plt.ylabel('Distance to Station [m]')
     plt.title('Station ' + str(key) + ' Picks')
-    plt.legend(loc='upper right', title='Picks')
-    plt.show()'''
-
-'''plt.scatter(dist_mag[0], dist_mag[1])
-plt.show()'''
-station_dists_mags = []
-#print(station_eq_df)
-for earthquake in range(len(station_eq_df.iloc[0])):
-    dist_mag = [station_eq_df.iloc[849, earthquake][index] for index in indices]
-    station_dists_mags.append(dist_mag)
-
-colors = on_off(station_dists_mags)
-distances_station = distances(station_dists_mags)
-magnitudes_station = magnitudes(station_dists_mags)
-
-station = 0
-#print(distances_station)
-max_dist = max(distances_station)
-print(max_dist)
-max_index = distances_station.index(max_dist)
-print(max_index)
-print(magnitudes_station[231])
-#print(magnitudes_station)
-#print(colors)
-#print('\n')
-true_color = []
-true_mag = []
-true_dist = []
-false_color = []
-false_mag = []
-false_dist = []
-for pick in range(len(colors)):
-    if colors[station] == True:
-        colors[station] = 'Green'
-        true_color.append('Green')
-        true_mag.append(magnitudes_station[station])
-        true_dist.append(distances_station[station])
-        station = station + 1
-
-    elif colors[station] == False:
-        colors[station] = 'Red'
-        false_color.append('Red')
-        false_mag.append(magnitudes_station[station])
-        false_dist.append(distances_station[station])
-        station = station + 1
-
-    else:
-        del colors[station]
-        del distances_station[station]
-        del magnitudes_station[station]
-#print(distances_station)
-#print(magnitudes_station)
-#print(colors)
-# print(distances_station)
-# print(magnitudes_station)
-# print(station_eq_df.iloc[0])
-
-#plt.scatter(magnitudes_station, distances_station, c=colors, alpha=0.75)
-for key in range(len(df_dict)):
-    plt.figure()
-    plt.scatter(true_mag, true_dist, c=true_color, label='Picked', alpha=0.75)
-    plt.scatter(false_mag, false_dist, c=false_color, label='Unpicked', alpha=0.25)
-    plt.xlabel('Earthquake Magnitude')
-    plt.ylabel('Distance to Station [m]')
-    plt.title('Station ' + key + ' Picks')
     plt.legend()
     plt.show()
+    station = station + 1
+#print(all_false_color[804])
+
+'''plt.figure()
+plt.scatter(all_true_mag[885], all_true_dist[885], c=all_true_color[885], label='Picked', alpha=0.75)
+plt.scatter(all_false_mag[885], all_false_dist[885], c=all_false_color[885], label='Unpicked', alpha=0.25)
+plt.xlabel('Earthquake Magnitude')
+plt.ylabel('Distance to Station [m]')
+plt.title('Station ' + str(key) + ' Picks')
+plt.legend()
+plt.show()'''
