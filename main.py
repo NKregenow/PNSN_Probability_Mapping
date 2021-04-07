@@ -207,7 +207,6 @@ station_eq_df = station_eq_df.set_index('Station')
 #True/False = On/Off during event, distance to event in meters, magnitude of event (rows = stations, columns = events)
 #print(station_eq_df.iloc[804])
 indices = [0, 1, 2]
-#station_dists_mags = []
 def on_off(list):
     return [item[0] for item in list]
 def distances(list): #selecting first of each index in list
@@ -215,9 +214,8 @@ def distances(list): #selecting first of each index in list
 def magnitudes(list):
     return [item[2] for item in list]
 
-#Place all of this in a for loop? --> make it run through every station: for key in f_dict:
+
 station_on_dists_mags = []
-#print(station_eq_df)
 for station in range(len(station_eq_df)):
     single_station = []
     for earthquake in range(len(station_eq_df.iloc[0])):
@@ -225,7 +223,6 @@ for station in range(len(station_eq_df)):
         single_station.append(on_dist_mag)
     station_on_dists_mags.append(single_station)
 
-#print(station_on_dists_mags) #list of 1262 sublists of 16 lists, each of the 16 have 3 values
 all_on_off = []
 all_station_mags = []
 all_station_dist = []
@@ -237,11 +234,10 @@ for station in range(len(station_on_dists_mags)):
     magnitudes_station = magnitudes(station_on_dists_mags[station])
     all_station_mags.append(magnitudes_station)
 
-station = 0
-#print(all_station_mags) #list of 1262 (stations) sublists of indices for each eq
-#print(all_station_dist)
-#print(all_on_off)
-#print('\n')
+for station in range(len(all_station_dist)):
+    for earthquake in range(len(all_station_dist[station])):
+        all_station_dist[station][earthquake] = all_station_dist[station][earthquake]/1000
+
 all_true_color = []
 all_true_mag = []
 all_true_dist = []
@@ -270,7 +266,6 @@ for station in range(len(all_on_off)):
     all_false_color.append(false_color)
     all_false_dist.append(false_dist)
     all_false_mag.append(false_mag)
-
 station = 0
 for key in df_dict:
     plt.figure()
@@ -279,18 +274,10 @@ for key in df_dict:
     if len(all_false_color[station]) != 0:
         plt.scatter(all_false_mag[station], all_false_dist[station], c=all_false_color[station], label='Unpicked', alpha=0.25)
     plt.xlabel('Earthquake Magnitude')
-    plt.ylabel('Distance to Station [m]')
+    plt.ylabel('Distance to Station [km]')
     plt.title('Station ' + str(key) + ' Picks')
     plt.legend()
     plt.show()
     station = station + 1
-#print(all_false_color[804])
 
-'''plt.figure()
-plt.scatter(all_true_mag[885], all_true_dist[885], c=all_true_color[885], label='Picked', alpha=0.75)
-plt.scatter(all_false_mag[885], all_false_dist[885], c=all_false_color[885], label='Unpicked', alpha=0.25)
-plt.xlabel('Earthquake Magnitude')
-plt.ylabel('Distance to Station [m]')
-plt.title('Station ' + str(key) + ' Picks')
-plt.legend()
-plt.show()'''
+
