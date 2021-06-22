@@ -258,12 +258,10 @@ for station in range(len(all_on_off)):
     all_color.append(station_color)
     all_dist.append(station_dist)
     all_mag.append(station_mag)
-mag_max = max(max(all_station_mags))
-print(mag_max)
-mag_min = min(min(all_station_mags))
-print(round(mag_min))
-#x_bins_list = np.linspace(round(mag_min), round(mag_max), 0.1)
-#print(x_bins_list)
+mag_max = round(max(max(all_station_mags))) #Standardize the x bins for all graphs
+mag_min = round(min(min(all_station_mags)))
+mag_bins = np.arange(mag_min, mag_max, 0.1)
+
 dist_max = 2500
 c2 = 1.11
 delta = -0.1
@@ -286,21 +284,86 @@ for i in y_bins:
     if i not in y_bins_list:
         y_bins_list.append(i)
 print(y_bins_list)
-#Divide the data by each bins (mix of mag and length)
 
-'''for xbin in range(len(int(mag_max - mag_min) * 10)):
-    for ybin in range(len(y_bins)):
-        counter = 0
-        station = 0
-        for key in df_dict:
-            if all_mag[station] and all_dist[station] in (xbin and ybin):
-                counter = counter + 1'''
+def prob(true, false):
+    return (true / (false + true))
 
-
-station = 0
-xbinwidth = 0.1
 for key in df_dict:
-    for xbin in range(int(round(mag_max) - round(mag_min)) * 10): #will this make enough bins? make a list like I did for the ybins beforehand
+    all_bin_boundaries = []
+    all_column_data = []
+    for xbin in range(len(mag_bins)):
+        total_count = 0
+        true_count = 0
+        false_count = 0
+        bin_check = 0
+        column_boundaries = [0]
+        column_data = [round(mag_bins[xbin], 2)]
+        for ybin in range(len(dist_bins)):
+            mag_bins[xbin] = round(mag_bins[xbin], 2)
+            bin_data = []
+            if total_count >= 10:  # loops over distances until we have enough events, then resets to 0 and starts again
+                probability = prob(true_count, false_count)
+
+                print(total_count)  # save all of these values in a variable to go off of for the next loop (list/dictionary)
+                print(true_count)
+                print(false_count)
+                bin_data.append(probability)
+                bin_data.append(total_count)
+                bin_data.append(true_count)
+                bin_data.append(false_count)
+                bin_data.append(dist_bins[ybin])
+                column_data.append(bin_data)
+                print(mag_bins[xbin])
+                print(dist_bins[ybin])  # this is where we are starting to count up to 3 again
+                lower_bounds = dist_bins[ybin]
+                column_boundaries.append(lower_bounds)
+                bin_check = bin_check + 1
+                total_count = 0
+                true_count = 0
+                false_count = 0
+            if dist_bins[ybin] == 2560 and total_count < 3:
+                bin_data.append(total_count)
+                bin_data.append(true_count)
+                bin_data.append(false_count)
+                bin_data.append(dist_bins[ybin])
+                column_data.append(bin_data)
+                total_count = 0
+                true_count = 0
+                false_count = 0
+            for event in range(len(eq_dist)):
+                if (eq_dist[event] >= dist_bins[ybin] and eq_dist[event] < dist_bins[ybin + 1]) and (
+                        eq_mag[event] >= round(mag_bins[xbin], 1) and eq_mag[event] < round(mag_bins[xbin + 1], 1)) and \
+                        eq_on_off[event] == True:
+                    total_count = total_count + 1
+                    true_count = true_count + 1
+                elif (eq_dist[event] >= dist_bins[ybin] and eq_dist[event] < dist_bins[ybin + 1]) and (
+                        eq_mag[event] >= round(mag_bins[xbin], 1) and eq_mag[event] < round(mag_bins[xbin + 1], 1)) and \
+                        eq_on_off[event] == False:
+                    total_count = total_count + 1
+                    false_count = false_count + 1
+        if bin_check == 0:
+            print(mag_bins[xbin])  # Save this information as well (list)
+            print('Not enough events in this magnitude bin')
+            print('\n')
+        if column_boundaries[-1] != 2560:
+            column_boundaries.append(2560)
+        all_bin_boundaries.append(column_boundaries)
+        all_column_data.append(column_data)
+    print(all_bin_boundaries)
+    print(all_column_data)
+
+    plt.figure()
+    (H, xedges, yedges, image) = plt.hist2d(eq_mag, eq_dist, bins=(mag_bins, dist_bins))
+    '''print(xedges)
+    print(yedges)
+    print(H)'''
+    plt.show()
+
+
+
+
+
+    '''for xbin in range(int(round(mag_max) - round(mag_min)) * 10): #will this make enough bins? make a list like I did for the ybins beforehand
         for ybin in range(len(y_bins)):
             counter_total = 0
             if all_mag[station] and all_dist[station] in (xbin and (y_bins_list[ybin] and y_bins_list[ybin + 1])): #this doesn't work because xbin/ybin are 0, 1, 2, 3..., not the bin boundary values
@@ -318,31 +381,4 @@ for key in df_dict:
     plt.title('Station ' + str(key) + ' Picks')
     plt.colorbar()
     plt.show()
-    station = station + 1
-
-#sort data triplets by increasing magnitude --> sorted
-#standardize bins for every graph
-#whit if: make the bins the areas to try and get N+ and N- to produce probability --> make bin size = Lm = 0.1 (or whatever value we end up going with)
-'''def deltaM(M, M_prime): #M_prime is from data, M is value we want to compare
-    return abs(M - M_prime)
-
-def deltaL(L, L_prime): #same concept as deltaM
-    return abs(L - L_prime)
-
-#c2 = 1.11
-#make deltaMStar = 0.1 by using log of L values
-Allow Lm to be 0.14... instead of 0.1 for convenience?
-
-def deltaMStar(c2, L1, L2): #for EQ that gave same amplitude to the station at different distances --> Do I need to get the amplitude reading for every eq at every station as well?
-    return abs(c2* math.log(L1) -c2 * math.log(L2))
-
-L_Mag = math.sqrt(deltaM ** 2 + deltaMStar ** 2)
-
-#general idea...
-selected_list = []
-N = 0
-for earthquake in range(len(L_Mag)): #this may not be the right thing to iterate over as L_Mag is a single value, unless deltaM and deltaMStar are both arrays
-    if L_Mag[earthquake] <= 0.1:
-        selected_list.append(L_Mag[earthquake])
-        N = N + 1
-    if N < 10:'''
+    station = station + 1'''
